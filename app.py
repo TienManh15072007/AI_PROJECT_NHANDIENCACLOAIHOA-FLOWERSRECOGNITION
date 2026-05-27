@@ -1,3 +1,39 @@
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+# 1. Đọc dữ liệu từ thư mục 'dataset_hoa' mà bạn đã tạo
+datagen = ImageDataGenerator(rescale=1./255, validation_split=0.2) # Chia 80% học, 20% kiểm tra
+
+train_data = datagen.flow_from_directory(
+    'dataset_hoa',
+    target_size=(150, 150), # Ép tất cả ảnh về cùng 1 size để tránh lỗi Data Mismatch
+    batch_size=16,
+    class_mode='categorical',
+    subset='training'
+)
+
+# 2. Xây dựng "bộ não" CNN
+model = Sequential([
+    Conv2D(32, (3,3), activation='relu', input_shape=(150, 150, 3)),
+    MaxPooling2D(2, 2),
+    Conv2D(64, (3,3), activation='relu'),
+    MaxPooling2D(2, 2),
+    Flatten(),
+    Dense(128, activation='relu'),
+    Dropout(0.5), # Chống học vẹt
+    Dense(8, activation='softmax') # 8 tương ứng với 8 loại hoa
+])
+
+# 3. Bắt đầu huấn luyện (Quá trình này mất vài phút)
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+print("Bắt đầu huấn luyện mô hình...")
+model.fit(train_data, epochs=10) # Cho AI học qua lại 10 lần
+
+# 4. LƯU LẠI FILE .H5
+model.save('flower_model.h5')
+print("Đã học xong! File flower_model.h5 đã được tạo thành công trong máy của bạn.")
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model
